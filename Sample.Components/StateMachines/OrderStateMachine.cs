@@ -37,7 +37,6 @@ namespace Sample.Components.StateMachines
             //Event(() => AccountClosed, x => x.CorrelateBy((saga, context) => saga.CustomerNumber == context.Message.CustomerNumber));
 
             InstanceState(x => x.CurrentState);
-
             Initially(
                 When(OrderSubmitted)
                     //.Then(context =>
