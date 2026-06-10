@@ -1,0 +1,42 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio / Rider
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.rsuser
+
+## NuGet
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Cache
+*.cache
+*.dswa.cache.json
+EndpointInfo/
+ApiEndpoints.json
