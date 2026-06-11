@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "=== Step 1: Starting RabbitMQ (Docker) ===" -ForegroundColor Cyan
+Write-Host "=== Step 1: Starting RabbitMQ + Redis (Docker) ===" -ForegroundColor Cyan
 & "$root\start-rabbitmq.ps1"
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
