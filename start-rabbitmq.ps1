@@ -7,14 +7,14 @@ Write-Host "Starting RabbitMQ, Redis, and MongoDB containers (Docker)..." -Foreg
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
-docker compose up -d
+docker compose up -d --build
 
 $deadline = (Get-Date).AddSeconds($MaxWaitSeconds)
 $ready = $false
 
 while ((Get-Date) -lt $deadline) {
     try {
-        docker exec masstransit-rabbitmq rabbitmq-diagnostics -q ping 2>$null | Out-Null
+        docker exec masstransit-infra rabbitmq-diagnostics -q ping 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $ready = $true
             break
@@ -26,7 +26,7 @@ while ((Get-Date) -lt $deadline) {
 }
 
 if (-not $ready) {
-    Write-Host "RabbitMQ container did not become ready in time." -ForegroundColor Red
+    Write-Host "Infra container did not become ready in time." -ForegroundColor Red
     exit 1
 }
 

@@ -1,10 +1,12 @@
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: masstransit-rabbitmq
+  infra:
+    build: .
+    image: masstransit-infra:latest
+    container_name: masstransit-infra
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "6379:6379"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest

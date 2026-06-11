@@ -2,14 +2,14 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "Checking Redis container..." -ForegroundColor Cyan
-$running = docker ps --filter "name=masstransit-redis" --format "{{.Names}}" 2>$null
+Write-Host "Checking infra container (Redis)..." -ForegroundColor Cyan
+$running = docker ps --filter "name=masstransit-infra" --format "{{.Names}}" 2>$null
 
 if (-not $running) {
-    Write-Host "Starting Redis (docker compose)..." -ForegroundColor Yellow
+    Write-Host "Starting infra (docker compose)..." -ForegroundColor Yellow
     Set-Location $root
-    docker compose up -d redis
-    Start-Sleep -Seconds 3
+    docker compose up -d --build
+    Start-Sleep -Seconds 5
 }
 
 Write-Host ""
@@ -20,4 +20,4 @@ Write-Host "  MONITOR             - live log of all Redis commands"
 Write-Host "  exit                - close redis-cli"
 Write-Host ""
 
-docker exec -it masstransit-redis redis-cli
+docker exec -it masstransit-infra redis-cli
