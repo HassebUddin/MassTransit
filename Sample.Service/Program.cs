@@ -81,18 +81,15 @@
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
                         // cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
 
-                        var redisConfiguration = hostContext.Configuration["Redis:Configuration"] ?? "127.0.0.1";
+                        var mongoConnection = hostContext.Configuration["MongoDB:Connection"] ?? "mongodb://127.0.0.1:27017";
+                        var mongoDatabase = hostContext.Configuration["MongoDB:DatabaseName"] ?? "orders";
 
                         cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
-                            .RedisRepository(r =>
+                            .MongoDbRepository(r =>
                             {
-                                r.DatabaseConfiguration(redisConfiguration);
+                                r.Connection = mongoConnection;
+                                r.DatabaseName = mongoDatabase;
                             });
-                        //     .MongoDbRepository(r =>
-                        //     {
-                        //         r.Connection = "mongodb://127.0.0.1";
-                        //         r.DatabaseName = "orders";
-                        //     });
 
                         if (string.Equals(transport, "InMemory", StringComparison.OrdinalIgnoreCase))
                         {

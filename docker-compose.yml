@@ -16,3 +16,10 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: masstransit-mongodb
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
