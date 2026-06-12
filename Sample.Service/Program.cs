@@ -18,6 +18,8 @@
     // using Sample.Components.BatchConsumers;
     using Sample.Components.Consumers;
     using Sample.Components.StateMachines;
+    using Sample.Components.StateMachines.Activities;
+    using Sample.Components.StateMachines.Activities.Inventories;
     using Sample.Components.StateMachines.StateMachineDefinitions;
     using Sample.Components.StateMachines.States;
     using Serilog;
@@ -69,7 +71,7 @@
 
                     _module.Initialize(configuration);
 
-                    // services.AddScoped<AcceptOrderActivity>();
+                     services.AddScoped<AcceptOrderActivity>();
                     // services.AddScoped<RoutingSlipBatchEventConsumer>();
 
                     services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
@@ -79,7 +81,7 @@
                     services.AddMassTransit(cfg =>
                     {
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
-                        // cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
+                        cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
 
                         var mongoConnection = hostContext.Configuration["MongoDB:Connection"] ?? "mongodb://127.0.0.1:27017";
                         var mongoDatabase = hostContext.Configuration["MongoDB:DatabaseName"] ?? "orders";

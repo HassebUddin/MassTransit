@@ -17,6 +17,12 @@ namespace Sample.Components.StateMachines.Activities
         public async Task Execute(BehaviorContext<OrderState, OrderAccepted> context, IBehavior<OrderState, OrderAccepted> next)
         {
             Console.WriteLine($"Hello,World, order is {context.Message.OrderId}");
+            var consumeContext = context.GetPayload<ConsumeContext>();
+           var sendEndpoint=await consumeContext.GetSendEndpoint(new Uri("exchange:fullfill-order"));
+            await sendEndpoint.Send<FullFillOrder>(new
+            {
+                OrderId = context.Message.OrderId
+            });
             await next.Execute(context).ConfigureAwait(false);
         }
 

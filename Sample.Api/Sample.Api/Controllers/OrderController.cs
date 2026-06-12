@@ -76,7 +76,17 @@ namespace Sample.Api.Controllers
             }
         }
 
+        [HttpPatch]
+        public async Task<IActionResult> Patch(Guid id)
+        {
+            await _publishEndpoint.Publish<OrderAccepted>(new
+            {
+                OrderId = id,
+                InVar.Timestamp,
+            });
 
+            return Accepted();
+        }
 
         [HttpPut]
         public async Task<IActionResult> Put(Guid id, string customerNumber)
