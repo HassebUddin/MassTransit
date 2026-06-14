@@ -1,5 +1,4 @@
 ﻿
-
 using MassTransit;
 using MassTransit.Courier.Contracts;
 using Sample.Contracts;
@@ -8,10 +7,9 @@ namespace Sample.Components.Consumers
 {
     public class FullFillOrderConsumer : IConsumer<FullFillOrder>
     {
-
         public async Task Consume(ConsumeContext<FullFillOrder> context)
         {
-            if (context.Message.CustomerNumber.StartsWith("INVALID"))
+            if (context.Message.CustomerNumber?.StartsWith("INVALID") == true)
             {
                 throw new InvalidOperationException("We tried, but the customer is invalid");
             }
@@ -20,24 +18,31 @@ namespace Sample.Components.Consumers
 
             builder.AddActivity("AllocateInventory", new Uri("queue:allocate-inventory_execute"), new
             {
+                OrderId = context.Message.OrderId,
                 ItemNumber = "ITEM123",
                 Quantity = 10.0m
             });
 
+            var testnumber = context.Message.PaymentCardNumber;
             builder.AddActivity("PaymentActivity", new Uri("queue:payment_execute"),
-                new
-                {
-                    CardNumber = context.Message.PaymentCardNumber ?? "5999-1234-5678-9012",
-                    Amount = 99.95m
-                });
+             new
+             {
+                 CardNumber = context.Message.PaymentCardNumber ?? "5999-1234-5678-9012",
+                 Amount = 99.95m
+             });
+
 
             builder.AddVariable("OrderId", context.Message.OrderId);
 
-            await builder.AddSubscription(context.SourceAddress,
+            builder.AddSubscription(new Uri("queue:routing-slip-event"),
+                RoutingSlipEvents.ActivityCompleted | RoutingSlipEvents.Faulted | RoutingSlipEvents.Supplemental,
+                RoutingSlipEventContents.All);
+
+            builder.AddSubscription(context.SourceAddress,
                 RoutingSlipEvents.Faulted | RoutingSlipEvents.Supplemental,
                 RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentFaulted>(new { context.Message.OrderId }));
 
-            await builder.AddSubscription(context.SourceAddress,
+            builder.AddSubscription(context.SourceAddress,
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Supplemental,
                 RoutingSlipEventContents.None, x => x.Send<OrderFulfillmentCompleted>(new { context.Message.OrderId }));
 
@@ -45,6 +50,5 @@ namespace Sample.Components.Consumers
 
             await context.Execute(routingSlip);
         }
-    
     }
 }

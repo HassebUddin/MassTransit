@@ -4,6 +4,8 @@
     // using Sample.Components.StateMachines;
     // using Sample.Components.StateMachines.OrderStateMachineActivities;
     using MassTransit;
+    using MassTransit.Courier.Contracts;
+    using MassTransit.MongoDbIntegration.MessageData;
     // using MassTransit.Courier.Contracts;
     // using MassTransit.MongoDbIntegration.MessageData;
     using MassTransit.RabbitMqTransport;
@@ -15,11 +17,13 @@
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Sample.Components.BatchConsumers;
     // using Sample.Components.BatchConsumers;
     using Sample.Components.Consumers;
     using Sample.Components.StateMachines;
     using Sample.Components.StateMachines.Activities;
     using Sample.Components.StateMachines.Activities.Inventories;
+    using Sample.Components.StateMachines.Activities.Payment;
     using Sample.Components.StateMachines.StateMachineDefinitions;
     using Sample.Components.StateMachines.States;
     using Serilog;
@@ -28,6 +32,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
+    using Warehouse.Contract;
 
     // using Warehouse.Contracts;
 
@@ -72,7 +77,7 @@
                     _module.Initialize(configuration);
 
                      services.AddScoped<AcceptOrderActivity>();
-                    // services.AddScoped<RoutingSlipBatchEventConsumer>();
+                     services.AddScoped<RoutingSlipBatchEventConsumer>();
 
                     services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
 
@@ -81,7 +86,9 @@
                     services.AddMassTransit(cfg =>
                     {
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
+                        cfg.AddConsumer<RoutingSlipEventConsumer>();
                         cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
+                        cfg.AddActivitiesFromNamespaceContaining<PaymentActivity>();
 
                         var mongoConnection = hostContext.Configuration["MongoDB:Connection"] ?? "mongodb://127.0.0.1:27017";
                         var mongoDatabase = hostContext.Configuration["MongoDB:DatabaseName"] ?? "orders";
@@ -105,7 +112,7 @@
                             cfg.UsingRabbitMq(ConfigureBus);
                         }
 
-                        // cfg.AddRequestClient<AllocateInventory>();
+                        cfg.AddRequestClient<AllocateInventory>(new Uri("queue:allocate-inventory"));
                     });
 
                     services.AddHostedService<MassTransitConsoleHostedService>();
@@ -140,21 +147,21 @@
                 h.Password(rabbitPass);
             });
 
-            // configurator.UseMessageData(new MongoDbMessageDataRepository("mongodb://127.0.0.1", "attachments"));
-            // configurator.UseMessageScheduler(new Uri("queue:quartz"));
+            configurator.UseMessageData(new MongoDbMessageDataRepository("mongodb://127.0.0.1", "attachments"));
+            configurator.UseMessageScheduler(new Uri("queue:quartz"));
 
-            // configurator.ReceiveEndpoint(KebabCaseEndpointNameFormatter.Instance.Consumer<RoutingSlipBatchEventConsumer>(), e =>
-            // {
-            //     e.PrefetchCount = 20;
-            //
-            //     e.Batch<RoutingSlipCompleted>(b =>
-            //     {
-            //         b.MessageLimit = 10;
-            //         b.TimeLimit = TimeSpan.FromSeconds(5);
-            //
-            //         b.Consumer<RoutingSlipBatchEventConsumer, RoutingSlipCompleted>(context);
-            //     });
-            // });
+            configurator.ReceiveEndpoint(KebabCaseEndpointNameFormatter.Instance.Consumer<RoutingSlipBatchEventConsumer>(), e =>
+            {
+                e.PrefetchCount = 20;
+
+                e.Batch<RoutingSlipCompleted>(b =>
+                {
+                    b.MessageLimit = 10;
+                    b.TimeLimit = TimeSpan.FromSeconds(5);
+
+                    b.Consumer<RoutingSlipBatchEventConsumer, RoutingSlipCompleted>(context);
+                });
+            });
 
             configurator.ConfigureEndpoints(context);
         }

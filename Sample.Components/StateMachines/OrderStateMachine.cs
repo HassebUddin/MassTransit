@@ -21,9 +21,9 @@ namespace Sample.Components.StateMachines
         {
             Event(() => OrderSubmitted, x => x.CorrelateById(m => m.Message.OrderId));
             Event(() => OrderAccepted, x => x.CorrelateById(m => m.Message.OrderId));
-            //Event(() => FulfillmentCompleted, x => x.CorrelateById(m => m.Message.OrderId));
-            //Event(() => FulfillmentFaulted, x => x.CorrelateById(m => m.Message.OrderId));
-            //Event(() => FulfillOrderFaulted, x => x.CorrelateById(m => m.Message.Message.OrderId));
+            Event(() => FulfillmentCompleted, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => FulfillmentFaulted, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => FulfillOrderFaulted, x => x.CorrelateById(m => m.Message.Message.OrderId));
             Event(() => OrderStatusRequested, x =>
             {
                 x.CorrelateById(m => m.Message.OrderId);
@@ -43,8 +43,9 @@ namespace Sample.Components.StateMachines
                 When(OrderSubmitted)
                     .Then(context =>
                     {
-                        context.Saga.SubmitDate = context.Message.TimeStamp;
+                        context.Saga.SubmitDate = context.Message.Timestamp;
                         context.Saga.CustomerNumber = context.Message.CustomerNumber;
+                        context.Saga.PaymentCardNumber = context.Message.PaymentCardNumber;
                         context.Saga.Updated = DateTime.UtcNow;
                     })
                     .TransitionTo(Submitted));
@@ -58,14 +59,15 @@ namespace Sample.Components.StateMachines
                     .TransitionTo(Accepted)
                     );
 
-            //During(Accepted,
-            //    When(FulfillOrderFaulted)
-            //        .Then(context => Console.WriteLine("Fulfill Order Faulted: {0}", context.Data.Exceptions.FirstOrDefault()?.Message))
-            //        .TransitionTo(Faulted),
-            //    When(FulfillmentFaulted)
-            //        .TransitionTo(Faulted),
-            //    When(FulfillmentCompleted)
-            //        .TransitionTo(Completed));
+            During(Accepted,
+                //When(FulfillOrderFaulted)
+                //    .Then(context => Console.WriteLine("Fulfill Order Faulted: {0}", context.Data.Exceptions.FirstOrDefault()?.Message))
+                //    .TransitionTo(Faulted),
+                When(FulfillmentFaulted)
+                    .TransitionTo(Faulted)
+                , When(FulfillmentCompleted)
+                    .TransitionTo(Completed)
+                   );
 
 
             DuringAny(
@@ -80,15 +82,15 @@ namespace Sample.Components.StateMachines
         public State Submitted { get; private set; }
         public State Accepted { get; private set; }
         public State Canceled { get; private set; }
-        //public State Faulted { get; private set; }
-        //public State Completed { get; private set; }
+        public State Faulted { get; private set; }
+        public State Completed { get; private set; }
 
-        public Event<SubmitOrder> OrderSubmitted { get; private set; }
+        public Event<OrderSubmitted> OrderSubmitted { get; private set; }
         public Event<OrderAccepted> OrderAccepted { get; private set; }
-        //public Event<OrderFulfillmentCompleted> FulfillmentCompleted { get; private set; }
-        //public Event<OrderFulfillmentFaulted> FulfillmentFaulted { get; private set; }
+        public Event<OrderFulfillmentCompleted> FulfillmentCompleted { get; private set; }
+        public Event<OrderFulfillmentFaulted> FulfillmentFaulted { get; private set; }
         public Event<CheckOrder> OrderStatusRequested { get; private set; }
         public Event<CustomerAccountClosed> AccountClosed { get; private set; }
-        //public Event<Fault<FulfillOrder>> FulfillOrderFaulted { get; private set; }
+        public Event<Fault<FullFillOrder>> FulfillOrderFaulted { get; private set; }
     }
 }

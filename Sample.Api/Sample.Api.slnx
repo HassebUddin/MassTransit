@@ -4,6 +4,7 @@
     <Project Path="../Warehouse/Warehouse.Contract/Warehouse.Contract.csproj" Id="7dd4699d-a418-43b1-8705-89aafe41aadf" />
     <Project Path="../Warehouse/Warehouse.Service/Warehouse.Service.csproj" Id="d782ebe9-aef6-422b-8250-8179bd0369b7" />
   </Folder>
+  <Project Path="../Client.Console/Client.Console.csproj" Id="d120e707-67b5-4a71-92de-741eedaa01f2" />
   <Project Path="../Sample.Components/Sample.Components.csproj" />
   <Project Path="../Sample.Contracts/Sample.Contracts.csproj" />
   <Project Path="../Sample.Service/Sample.Service.csproj" />

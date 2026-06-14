@@ -15,14 +15,15 @@ builder.Services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
 var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
 var rabbitUser = builder.Configuration["RabbitMQ:Username"] ?? "guest";
 var rabbitPass = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+var mongoConnection = builder.Configuration["MongoDB:Connection"] ?? "mongodb://127.0.0.1:27017";
+var messageDataContainer = builder.Configuration["MongoDB:MessageDataContainer"] ?? "attachments";
 
 builder.Services.AddMassTransit(mt =>
 {
-    // API sends requests; Sample.Service consumes on submit-order queue
     mt.AddRequestClient<SubmitOrder>(
         new Uri($"queue:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
     mt.AddRequestClient<CheckOrder>(
-      new Uri($"queue:{KebabCaseEndpointNameFormatter.Instance.Saga<OrderState>()}"));
+        new Uri($"queue:{KebabCaseEndpointNameFormatter.Instance.Saga<OrderState>()}"));
 
     mt.UsingRabbitMq((context, cfg) =>
     {
@@ -31,6 +32,8 @@ builder.Services.AddMassTransit(mt =>
             h.Username(rabbitUser);
             h.Password(rabbitPass);
         });
+
+        cfg.UseMessageData(x => x.MongoDb(mongoConnection, messageDataContainer));
     });
 });
 

@@ -48,24 +48,21 @@ namespace Sample.Api.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Post(Guid Id,string CustomerNumber)
+        public async Task<IActionResult> Post(Guid Id,string CustomerNumber,string PaymentCardNumber,string? Notes)
         {
             var (accepted,reject)  = await _submitOrderRequestClient.GetResponse<OrderSubmisionAccepted,OrderSubmisionRejected>(new
             {
                 OrderId=Id,
                 CustomerNumber= CustomerNumber,
-                InVar.Timestamp
+                InVar.Timestamp,
+                PaymentCardNumber = PaymentCardNumber,
+                Notes=Notes 
             });
 
             if (accepted.IsCompleted)
             {
                 var response = await accepted;
-                await _publishEndpoint.Publish<SubmitOrder>(new
-                {
-                    OrderId = Id,
-                    CustomerNumber = CustomerNumber,
-                    TimeStamp = InVar.Timestamp
-                });
+               
                 return Accepted(response);
             }
             else

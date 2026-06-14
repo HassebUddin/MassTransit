@@ -16,13 +16,17 @@ namespace Sample.Components.StateMachines.Activities
 
         public async Task Execute(BehaviorContext<OrderState, OrderAccepted> context, IBehavior<OrderState, OrderAccepted> next)
         {
-            Console.WriteLine($"Hello,World, order is {context.Message.OrderId}");
+            Console.WriteLine("Hello, World. Order is {0}", context.Data.OrderId);
             var consumeContext = context.GetPayload<ConsumeContext>();
-           var sendEndpoint=await consumeContext.GetSendEndpoint(new Uri("exchange:fullfill-order"));
+            var sendEndpoint = await consumeContext.GetSendEndpoint(new Uri("queue:full-fill-order"));
+
             await sendEndpoint.Send<FullFillOrder>(new
             {
-                OrderId = context.Message.OrderId
+                OrderId = context.Message.OrderId,
+                CustomerNumber = context.Saga.CustomerNumber ?? string.Empty,
+                PaymentCardNumber = context.Saga.PaymentCardNumber ?? string.Empty
             });
+
             await next.Execute(context).ConfigureAwait(false);
         }
 

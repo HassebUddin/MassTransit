@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit" Version="8.3.4" />
+    <PackageReference Include="MongoDB.Bson" Version="2.30.0" />
   </ItemGroup>
 
   <ItemGroup>
